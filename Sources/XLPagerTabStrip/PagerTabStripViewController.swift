@@ -53,6 +53,8 @@ public protocol PagerTabStripDataSource: AnyObject {
 open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
 
     @IBOutlet weak public var containerView: UIScrollView!
+    
+    private var scrolledVc: UIViewController?
 
     open weak var delegate: PagerTabStripDelegate?
     open weak var datasource: PagerTabStripDataSource?
@@ -246,21 +248,24 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
                     childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: view.bounds.width, height: containerView.bounds.height)
                     childController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
                 } else {
-                    childController.beginAppearanceTransition(true, animated: false)
+                    scrolledVc = childController
                     addChild(childController)
                     childController.view.frame = CGRect(x: offsetForChild(at: index), y: 0, width: view.bounds.width, height: containerView.bounds.height)
                     childController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
                     containerView.addSubview(childController.view)
                     childController.didMove(toParent: self)
-                    childController.endAppearanceTransition()
                 }
             } else {
-                if childController.parent != nil {
+                if childController.parent != nil && scrolledVc != childController {
                     childController.beginAppearanceTransition(false, animated: false)
                     childController.willMove(toParent: nil)
                     childController.view.removeFromSuperview()
                     childController.removeFromParent()
                     childController.endAppearanceTransition()
+                    
+                    scrolledVc?.beginAppearanceTransition(true, animated: false)
+                    scrolledVc?.endAppearanceTransition()
+                    scrolledVc = nil
                 }
             }
         }
