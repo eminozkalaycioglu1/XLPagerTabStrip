@@ -55,7 +55,9 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
     @IBOutlet weak public var containerView: UIScrollView!
     
     private var scrolledVc: UIViewController?
-
+    private var oldViewIsDisappeared = false
+    private var newViewIsAppeared = false
+    
     open weak var delegate: PagerTabStripDelegate?
     open weak var datasource: PagerTabStripDataSource?
 
@@ -254,6 +256,7 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
                     childController.view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
                     containerView.addSubview(childController.view)
                     childController.didMove(toParent: self)
+                    newViewIsAppeared = true
                 }
             } else {
                 if childController.parent != nil && scrolledVc != childController {
@@ -262,12 +265,17 @@ open class PagerTabStripViewController: UIViewController, UIScrollViewDelegate {
                     childController.view.removeFromSuperview()
                     childController.removeFromParent()
                     childController.endAppearanceTransition()
-                    
-                    scrolledVc?.beginAppearanceTransition(true, animated: false)
-                    scrolledVc?.endAppearanceTransition()
-                    scrolledVc = nil
+                    oldViewIsDisappeared = true
                 }
             }
+        }
+        
+        if oldViewIsDisappeared && newViewIsAppeared {
+            scrolledVc?.beginAppearanceTransition(true, animated: false)
+            scrolledVc?.endAppearanceTransition()
+            scrolledVc = nil
+            oldViewIsDisappeared = false
+            newViewIsAppeared = false
         }
 
         let oldCurrentIndex = currentIndex
